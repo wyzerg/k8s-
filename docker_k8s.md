@@ -96,7 +96,7 @@ master模块：
 
 ## 2 k8s集群搭建
 
-### 搭建方式介绍
+### 2.1 搭建方式介绍
 
 #### 1) minikube工具部署
 
@@ -119,11 +119,11 @@ master模块：
 
 
 
-### minikube部署(mac系统)
+### 2.2 minikube部署单节点k8s
 
 https://minikube.sigs.k8s.io/docs/start/
 
-
+mac为例：
 
 #### 1) 下载minikube
 
@@ -316,11 +316,187 @@ wangjunxiang@My_MacBook_pro_2018  /tmp  minikube dashboard
 
 
 
+### 2.3 kubeadm部署多节点k8s
+
+搭建3台机器的k8s集群
+
+#### 1) 环境准备
+
+系统：centos7
+
+网络：桥接模式
+
+3台host
+
++ k8s-master
+  + ip: 192.168.50.100
+  + cpu >= 2  (master节点cpu至少2个)
+  + mem >= 2G
+
++ k8s-node1
+  + ip: 192.168.50.101
+  + cpu >= 1
+  + mem >=2G
++ k8s-node2
+  + ip: 192.168.50.102
+  + cpu >= 1
+  + mem >=2G
 
 
 
+Vagrantfile 和 setup.sh同目录
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/k8s-1  ll
+total 16
+-rw-r--r--  1 wangjunxiang  staff  1084  5  6 19:26 Vagrantfile
+-rw-r--r--  1 wangjunxiang  staff  1499  5  6 19:28 setup.sh
+```
 
 
+
+##### Vagrantfile
+
+Vagrantfile初始化文件，通过virtualbox接口自动生成三台配置好的虚拟机，并安装好centos7之后执行安装脚本setup.sh，或者挨个手动安装
+
+```ruby
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.require_version ">= 1.6.0"
+
+boxes = [
+    {
+        :name => "k8s-master",
+        :eth1 => "192.168.50.100",
+        :mem => "2048",
+        :cpu => "2"
+    },
+    {
+        :name => "k8s-node1",
+        :eth1 => "192.168.50.101",
+        :mem => "2048",
+        :cpu => "1"
+    },
+    {
+        :name => "k8s-node2",
+        :eth1 => "192.168.50.102",
+        :mem => "2048",
+        :cpu => "1"
+    }
+
+]
+
+Vagrant.configure(2) do |config|
+
+  config.vm.box = "centos/7"
+  boxes.each do |opts|
+    config.vm.define opts[:name] do |config|
+      config.vm.hostname = opts[:name]
+      config.vm.provider "vmware_fusion" do |v|
+        v.vmx["memsize"] = opts[:mem]
+        v.vmx["numvcpus"] = opts[:cpu]
+      end
+      config.vm.provider "virtualbox" do |v|
+        v.customize ["modifyvm", :id, "--memory", opts[:mem]]
+        v.customize ["modifyvm", :id, "--cpus", opts[:cpu]]
+      end
+      config.vm.network :public_network, ip: opts[:eth1]
+    end
+  end
+  #config.vm.provision "shell", privileged: true, path: "./setup.sh"
+end
+```
+
+##### setup.sh 
+
+yum安装docker，yum安装k8s
+
+```shell
+#/bin/sh
+
+# install some tools
+sudo yum install -y vim telnet bind-utils wget
+
+
+# install docker
+curl -fsSL get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+if [ ! $(getent group docker) ];
+then 
+    sudo groupadd docker;
+else
+    echo "docker user group already exists"
+fi
+
+sudo gpasswd -a $USER docker
+sudo systemctl restart docker
+
+rm -rf get-docker.sh
+
+# open password auth for backup if ssh key doesn't work, bydefault, username=vagrant password=vagrant
+sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+sudo systemctl restart sshd
+
+#阿里云的k8s源
+sudo bash -c 'cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF'
+
+# 也可以尝试国内的源 http://ljchen.net/2018/10/23/%E5%9F%BA%E4%BA%8E%E9%98%BF%E9%87%8C%E4%BA%91%E9%95%9C%E5%83%8F%E7%AB%99%E5%AE%89%E8%A3%85kubernetes/
+
+sudo setenforce 0
+
+# install kubeadm, kubectl, and kubelet.
+sudo yum install -y kubelet kubeadm kubectl
+
+sudo bash -c 'cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward=1
+EOF'
+sudo sysctl --system
+
+sudo systemctl stop firewalld
+sudo systemctl disable firewalld
+sudo swapoff -a
+
+systemctl enable docker.service
+systemctl enable kubelet.service
+
+```
+
+
+
+#### 2) 安装部署
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/k8s-1  vagrant up
+............
+.......
+==> k8s-master: Available bridged network interfaces:
+1) en0: Wi-Fi (Wireless)
+2) en5: USB Ethernet(?)
+3) p2p0
+4) awdl0
+5) llw0
+6) en2: 雷雳2
+7) en1: 雷雳1
+8) en3: 雷雳3
+9) en4: 雷雳4
+10) bridge0
+==> k8s-master: When choosing an interface, it is usually the one that is
+==> k8s-master: being used to connect to the internet.
+==> k8s-master:
+    k8s-master: Which interface should the network bridge to? 1    # 选择每一台机器都是连接 en0的网桥 1
+```
 
 
 
