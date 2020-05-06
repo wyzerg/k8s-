@@ -12,13 +12,13 @@
 
 docker swarm 的manager节点和worker节点
 
-<img src="/Users/wangjunxiang/Library/Application Support/typora-user-images/image-20200506105035746.png" alt="image-20200506105035746" style="zoom:33%;" />
+<img src="https://images.gitee.com/uploads/images/2020/0506/153410_704cebd7_7530643.png" alt="image-20200506105035746" style="zoom:100%;" />
 
 
 
 kubernetes 的master和node节点
 
-<img src="/Users/wangjunxiang/Library/Application Support/typora-user-images/image-20200506105202364.png" alt="image-20200506105202364" style="zoom:33%;" />
+<img src="https://images.gitee.com/uploads/images/2020/0506/153422_f4218af2_7530643.png" alt="image-20200506105202364" style="zoom:100%;" />
 
 
 
@@ -26,7 +26,7 @@ kubernetes 的master和node节点
 
 ### k8s-master
 
-<img src="/Users/wangjunxiang/Library/Application Support/typora-user-images/image-20200506105519590.png" alt="image-20200506105519590" style="zoom:33%;" />
+<img src="https://images.gitee.com/uploads/images/2020/0506/153432_532b6bff_7530643.png" alt="image-20200506105519590" style="zoom:100%;" />
 
 
 
@@ -52,7 +52,7 @@ master模块：
 
 ### k8s-node
 
-<img src="/Users/wangjunxiang/Library/Application Support/typora-user-images/image-20200506110320795.png" alt="image-20200506110320795" style="zoom:33%;" />
+<img src="https://images.gitee.com/uploads/images/2020/0506/153442_2a3174f4_7530643.png" alt="image-20200506110320795" style="zoom:100%;" />
 
 
 
@@ -88,7 +88,7 @@ master模块：
 
 ### k8s调度
 
-<img src="/Users/wangjunxiang/Library/Application Support/typora-user-images/image-20200506111540455.png" alt="image-20200506111540455" style="zoom:33%;" />
+<img src="https://images.gitee.com/uploads/images/2020/0506/153451_893564e9_7530643.png" alt="image-20200506111540455" style="zoom:100%;" />
 
 
 
@@ -132,9 +132,33 @@ master模块：
 
 ### minikube部署
 
+#### 1,安装minikube
+
++ https://minikube.sigs.k8s.io/docs/start/
+
+```shell
+# mac下安装
+wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/chapter7  brew install minikube
+
+# 如果 brew install 太慢 卡住 更换清华源
+cd "$(brew --repo)"
+git remote set-url origin https://mirrors.ustc.edu.cn/brew.git
+cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
+git remote set-url origin https://mirrors.ustc.edu.cn/homebrew-core.git
+
+# 如果brew install还卡住 则
+export HOMEBREW_NO_AUTO_UPDATE=true
+```
 
 
 
+#### 2,安装 kube-cli工具
+
++ https://kubernetes.io/docs/tasks/tools/install-kubectl/
+
+#### 3,本地虚拟化工具 Vmware/VirtualBox
+
++ 
 
 
 
