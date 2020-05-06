@@ -292,7 +292,23 @@ kube-system   storage-provisioner                1/1     Running   1          62
 
 
 
+#### 5) 通过web访问k8s集群
 
+
+
+ 通过minikube启动dashboard，自动弹出web页面
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  minikube dashboard
+🔌  正在开启 dashboard ...
+🤔  正在验证 dashboard 运行情况 ...
+🚀  Launching proxy ...
+🤔  正在验证 proxy 运行状况 ...
+🎉  Opening http://127.0.0.1:65078/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/ in your default browser...
+
+```
+
+<img src="https://images.gitee.com/uploads/images/2020/0506/185657_3adc9fab_7530643.png" style="zoom:67%;" />
 
 
 
