@@ -320,7 +320,9 @@ wangjunxiang@My_MacBook_pro_2018  /tmp  minikube dashboard
 
 搭建3台机器的k8s集群
 
-#### 1) 环境准备
+#### 安装
+
+##### 1) 环境准备
 
 系统：centos7
 
@@ -355,9 +357,9 @@ total 16
 
 
 
-##### Vagrantfile
+###### Vagrantfile
 
-Vagrantfile初始化文件，通过virtualbox接口自动生成三台配置好的虚拟机，并安装好centos7之后执行安装脚本setup.sh，或者挨个手动安装
+Vagrantfile初始化文件，通过virtualbox接口自动生成三台配置好的虚拟机，并安装好centos7之后，挨个手动安装
 
 ```ruby
 # -*- mode: ruby -*-
@@ -408,39 +410,38 @@ Vagrant.configure(2) do |config|
 end
 ```
 
-##### setup.sh 
+###### setup
 
-yum安装docker，yum安装k8s
+root下yum安装docker，yum安装k8s
 
 ```shell
 #/bin/sh
 
-# install some tools
-sudo yum install -y vim telnet bind-utils wget
+# 关闭防火墙和selinux，install docker ,some tools
+systemctl stop firewalld.service && systemctl disable firewalld.service && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config && setenforce 0 && yum -y install wget curl && curl -o /etc/yum.repos.d/Centos-7.repo http://mirrors.aliyun.com/repo/Centos-7.repo && curl -o /etc/yum.repos.d/docker-ce.repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo && yum install -y yum-utils device-mapper-persistent-data lvm2 vim telnet bind-utils && yum-config-manager  --add-repo  https://download.docker.com/linux/centos/docker-ce.repo && yum install -y docker-ce docker-ce-cli containerd.io && systemctl enable docker && systemctl daemon-reload && systemctl restart docker  && mkdir -p /etc/docker
+
+[ ! $(getent group docker) ] && sudo groupadd docker && sudo gpasswd -a $USER docker || echo "docker user group already exists" 
+
+cat <<EOF >  /etc/docker/daemon.json
+{
+  "registry-mirrors" : [
+    "https://8xpk5wnt.mirror.aliyuncs.com",
+    "https://dockerhub.azk8s.cn",
+    "https://registry.docker-cn.com",
+    "https://ot2k4d59.mirror.aliyuncs.com/"
+  ]
+}
+EOF
+
+systemctl restart docker
 
 
-# install docker
-curl -fsSL get.docker.com -o get-docker.sh
-sh get-docker.sh
-
-if [ ! $(getent group docker) ];
-then 
-    sudo groupadd docker;
-else
-    echo "docker user group already exists"
-fi
-
-sudo gpasswd -a $USER docker
-sudo systemctl restart docker
-
-rm -rf get-docker.sh
 
 # open password auth for backup if ssh key doesn't work, bydefault, username=vagrant password=vagrant
-sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-sudo systemctl restart sshd
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config && systemctl restart sshd
 
 #阿里云的k8s源
-sudo bash -c 'cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
 baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
@@ -448,34 +449,30 @@ enabled=1
 gpgcheck=0
 repo_gpgcheck=0
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
-EOF'
+EOF
 
-# 也可以尝试国内的源 http://ljchen.net/2018/10/23/%E5%9F%BA%E4%BA%8E%E9%98%BF%E9%87%8C%E4%BA%91%E9%95%9C%E5%83%8F%E7%AB%99%E5%AE%89%E8%A3%85kubernetes/
-
-sudo setenforce 0
 
 # install kubeadm, kubectl, and kubelet.
 sudo yum install -y kubelet kubeadm kubectl
 
-sudo bash -c 'cat <<EOF >  /etc/sysctl.d/k8s.conf
+# 配置网路
+cat <<EOF >  /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward=1
-EOF'
-sudo sysctl --system
+EOF
 
-sudo systemctl stop firewalld
-sudo systemctl disable firewalld
-sudo swapoff -a
+sysctl --system
 
-systemctl enable docker.service
+#关闭swap
+swapoff -a
+
 systemctl enable kubelet.service
-
 ```
 
 
 
-#### 2) 安装部署
+##### 2) 安装部署
 
 ```shell
 wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/k8s-1  vagrant up
@@ -500,9 +497,180 @@ wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/k8s-1  vagrant
 
 
 
+##### 3) 验证查看k8s版本
+
+```shell
+which kubeadm && which kubelet && which kubectl
+```
+
+```shell
+[root@k8s-master vagrant]# kubectl version
+Client Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.2", GitCommit:"52c56ce7a8272c798dbc29846288d7cd9fbae032", GitTreeState:"clean", BuildDate:"2020-04-16T11:56:40Z", GoVersion:"go1.13.9", Compiler:"gc", Platform:"linux/amd64"}
+Server Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.2", GitCommit:"52c56ce7a8272c798dbc29846288d7cd9fbae032", GitTreeState:"clean", BuildDate:"2020-04-16T11:48:36Z", GoVersion:"go1.13.9", Compiler:"gc", Platform:"linux/amd64"}
+```
 
 
-1
+
+
+
+#### 部署k8s集群
+
+##### master节点初始化
+
+`--pod-network-cidr`
+
++ 集群中创建pod使用的网段
+
+`--apiserver-advertise-address`
+
++ 对外宣告APIserver地址，一般是master的IP地址
+
+`--image-repository`
+
++ 指定阿里云镜像地址  registry.aliyuncs.com/google_containers
+
+```shell
+[root@k8s-master ~]# kubeadm init --pod-network-cidr 172.100.0.0/16 --apiserver-advertise-address 192.168.50.100 --image-repository registry.aliyuncs.com/google_containers
+............
+.........
+.....
+..
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+####################### 先执行安装成功提示命令 #######################
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+####################### 再执行下条 #######################
+# 在work节点运行，将节点加入k8s集群成为worker
+kubeadm join 192.168.50.100:6443 --token g6oc9q.7tr2lqmpa1m4yn6n  --discovery-token-ca-cert-hash sha256:4f6aa49affd476924360e056d274d65d70ba988d3cd482cdc68e0103dabd7721
+```
+
+先执行
+
+```shell
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+查看master起的pod，2个pending状态，保证下面5个组件running
+
+```shell
+[root@k8s-master ~]# kubectl get pod --all-namespaces
+NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE
+# 由于网络插件没安装所以是pending状态
+kube-system   coredns-7ff77c879f-fvlm7             0/1     Pending   0          6m47s
+kube-system   coredns-7ff77c879f-szws6             0/1     Pending   0          6m47s
+# 保证下面5个组件是running
+kube-system   etcd-k8s-master                      1/1     Running   0          7m1s
+kube-system   kube-apiserver-k8s-master            1/1     Running   0          7m1s
+kube-system   kube-controller-manager-k8s-master   1/1     Running   0          7m1s
+kube-system   kube-proxy-vm7db                     1/1     Running   0          6m47s
+kube-system   kube-scheduler-k8s-master            1/1     Running   0          7m1s
+```
+
+安装网络插件
+
+```shell
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+```
+
+网络插件安装后，此时查看master起的pod
+
+```shell
+[root@k8s-master vagrant]# kubectl get pod --all-namespaces
+NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE
+# 网络插件安装后dns组件准备好
+kube-system   coredns-7ff77c879f-fvlm7             1/1     Running   0          11m
+kube-system   coredns-7ff77c879f-szws6             1/1     Running   0          11m
+#
+kube-system   etcd-k8s-master                      1/1     Running   0          11m
+kube-system   kube-apiserver-k8s-master            1/1     Running   0          11m
+kube-system   kube-controller-manager-k8s-master   1/1     Running   0          11m
+kube-system   kube-proxy-vm7db                     1/1     Running   0          11m
+kube-system   kube-scheduler-k8s-master            1/1     Running   0          11m
+# 网络插件安装后新增weave-net的pod
+kube-system   weave-net-qb6ns                      2/2     Running   0          52s
+```
+
+
+
+##### 新增worker节点
+
+在worker1和2上运行
+
+```shell
+sudo kubeadm join 192.168.50.100:6443 --token g6oc9q.7tr2lqmpa1m4yn6n  --discovery-token-ca-cert-hash sha256:4f6aa49affd476924360e056d274d65d70ba988d3cd482cdc68e0103dabd7721
+```
+
+
+
+在master节点验证，worker节点会逐渐从 NotReady 变为 Ready
+
+```shell
+[root@k8s-master vagrant]# kubectl get nodes
+NAME         STATUS     ROLES    AGE   VERSION
+k8s-master   Ready      master   15m   v1.18.2
+k8s-node1    NotReady   <none>   61s   v1.18.2
+k8s-node2    Ready      <none>   68s   v1.18.2
+
+[root@k8s-master vagrant]# kubectl get pod --all-namespaces
+NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE
+kube-system   coredns-7ff77c879f-fvlm7             1/1     Running   0          16m
+kube-system   coredns-7ff77c879f-szws6             1/1     Running   0          16m
+kube-system   etcd-k8s-master                      1/1     Running   0          16m
+kube-system   kube-apiserver-k8s-master            1/1     Running   0          16m
+kube-system   kube-controller-manager-k8s-master   1/1     Running   0          16m
+# 新增worker节点，集群增加了更多的proxy
+kube-system   kube-proxy-4g78p                     1/1     Running   0          105s
+kube-system   kube-proxy-cf996                     1/1     Running   0          112s
+kube-system   kube-proxy-vm7db                     1/1     Running   0          16m
+kube-system   kube-scheduler-k8s-master            1/1     Running   0          16m
+# 新增worker节点，集群增加了更多的weave-net
+kube-system   weave-net-bns2b                      2/2     Running   1          105s
+kube-system   weave-net-k7xph                      2/2     Running   0          112s
+kube-system   weave-net-qb6ns                      2/2     Running   0          6m6s
+```
+
+
+
+<img src="https://images.gitee.com/uploads/images/2020/0506/211039_e7f91552_7530643.png" style="zoom:80%;" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
