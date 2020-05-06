@@ -502,7 +502,7 @@ wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/k8s-1  vagrant
 
 
 
-
+1
 
 
 
