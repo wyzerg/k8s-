@@ -94,24 +94,24 @@ master模块：
 
 
 
-## 2 k8s集群搭建
+# 2 k8s集群搭建
 
-### 2.1 搭建方式介绍
+## 2.1 搭建方式介绍
 
-#### 1) minikube工具部署
+### 1) minikube工具部署
 
 + 用途：一般用来 快速本地 开发 测试 用
 
   + https://github.com/kubernetes/minikube
   + 在本地创建1个node的k8s集群
 
-#### 2) kubeadm 部署
+### 2) kubeadm 部署
 
 + 用途：本地搭建 多个节点 的k8s集群
 
   + https://github.com/kubernetes/kubeadm
 
-#### 3) kops 部署
+### 3) kops 部署
 
   + https://github.com/kubernetes/kops
   + 在cloud部署k8s集群
@@ -119,21 +119,21 @@ master模块：
 
 
 
-### 2.2 minikube部署单节点k8s
+## 2.2 minikube部署单节点k8s
 
 https://minikube.sigs.k8s.io/docs/start/
 
 mac为例：
 
-#### 1) 下载minikube
+### 1) 下载minikube
 
-##### brew安装minikube 或者 curl安装
+#### brew安装minikube 或者 curl安装
 
 + 可以找到阿里云的minikube文件安装
 
 
 
-###### 方式1：挂vpn国外安装...(二选一)
+##### 方式1：挂vpn国外安装...(二选一)
 
 ```shell
 # mac下安装
@@ -153,7 +153,7 @@ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-darwin
 sudo install minikube-darwin-amd64 /usr/local/bin/minikube
 ```
 
-###### 方式2：阿里云国内安装(后来才知道)
+##### 方式2：阿里云国内安装(后来才知道)
 
 阿里云发布的minikube地址：https://github.com/AliyunContainerService/minikube
 
@@ -167,13 +167,13 @@ mv minikube /usr/local/bin
 
 在安装完 minikube 之后，由于高版本，会自带kubectl，如果kubectl在安装minikube的时候一并安装好了
 
-##### 准备本地虚拟化工具 Vmware/VirtualBox
+#### 准备本地虚拟化工具 Vmware/VirtualBox
 
 + 安装 VirtualBox
 
 
 
-#### 2) 启动minikube
+### 2) 启动minikube
 
 如果指定virtualbox启动
 
@@ -183,18 +183,18 @@ mv minikube /usr/local/bin
 
 ```
 wangjunxiang@My_MacBook_pro_2018  /tmp  minikube start --vm-driver=virtualbox --registry-mirror=https://registry.docker-cn.com
+
 😄  Darwin 10.15.4 上的 minikube v1.9.0
 ✨  根据现有的配置文件使用 virtualbox 驱动程序
 🏃  Updating the running virtualbox "minikube" VM ...
 🐳  正在 Docker 19.03.8 中准备 Kubernetes v1.18.0…
 🌟  Enabling addons: default-storageclass, storage-provisioner
 🏄  完成！kubectl 已经配置至 "minikube"
-
 ```
 
 
 
-##### 查看minikube集群状态
+#### 查看minikube集群状态
 
 ```shell
 wangjunxiang@My_MacBook_pro_2018  /tmp  minikube status
@@ -205,13 +205,13 @@ apiserver: Running
 kubeconfig: Configured
 ```
 
-##### 停止minikube集群
+#### 停止minikube集群
 
 ```shell
 minikube stop
 ```
 
-##### 删除minikube集群
+#### 删除minikube集群
 
 ```shell
 minikube delete
@@ -221,7 +221,7 @@ minikube delete
 
 
 
-#### 3) 进入minikube
+### 3) minikube进入k8s集群
 
 **通过查看docker ps发现启动了大量的容器，这些容器就是组成k8s服务的组件**
 
@@ -262,11 +262,11 @@ logout
 
 
 
-#### 4) 通过 kubectl 连接k8s集群
+### 4) 通过 kubectl 连接k8s集群
 
 下载kubectl忽略，因为mac在安装好minikube后会顺带安装kubectl
 
-##### 查看kubectl 版本信息
+#### 查看kubectl 版本信息
 
 ```shell
 wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl version
@@ -275,7 +275,7 @@ Client Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.0", GitCom
 Server Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.0", GitCommit:"9e991415386e4cf155a24b1da15becaa390438d8", GitTreeState:"clean", BuildDate:"2020-03-25T14:50:46Z", GoVersion:"go1.13.8", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
-##### 查看集群核心组件：所有namespace
+#### 查看集群核心组件：所有namespace
 
 ```shell
 wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl get pod --all-namespaces
@@ -292,7 +292,7 @@ kube-system   storage-provisioner                1/1     Running   1          62
 
 
 
-#### 5) 通过web访问k8s集群
+### 5) 通过web访问k8s集群
 
 
 
@@ -316,13 +316,13 @@ wangjunxiang@My_MacBook_pro_2018  /tmp  minikube dashboard
 
 
 
-### 2.3 kubeadm部署多节点k8s
+## 2.3 kubeadm部署多节点k8s
 
 搭建3台机器的k8s集群
 
-#### 安装
+### 安装
 
-##### 1) 环境准备
+#### 1) 环境准备
 
 系统：centos7
 
@@ -357,7 +357,7 @@ total 16
 
 
 
-###### Vagrantfile
+##### Vagrantfile
 
 Vagrantfile初始化文件，通过virtualbox接口自动生成三台配置好的虚拟机，并安装好centos7之后，挨个手动安装
 
@@ -410,7 +410,7 @@ Vagrant.configure(2) do |config|
 end
 ```
 
-###### setup
+##### setup
 
 root下yum安装docker，yum安装k8s
 
@@ -472,7 +472,7 @@ systemctl enable kubelet.service
 
 
 
-##### 2) 安装部署
+#### 2) 安装部署
 
 ```shell
 wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/k8s-1  vagrant up
@@ -497,7 +497,7 @@ wangjunxiang@My_MacBook_pro_2018  ~/data/ISO/VirtualBox_VMs/k8s-1  vagrant
 
 
 
-##### 3) 验证查看k8s版本
+#### 3) 验证查看k8s版本
 
 ```shell
 which kubeadm && which kubelet && which kubectl
@@ -513,9 +513,9 @@ Server Version: version.Info{Major:"1", Minor:"18", GitVersion:"v1.18.2", GitCom
 
 
 
-#### 部署k8s集群
+### 部署k8s集群
 
-##### master节点初始化
+#### master节点初始化(kubeadm)
 
 `--pod-network-cidr`
 
@@ -605,7 +605,7 @@ kube-system   weave-net-qb6ns                      2/2     Running   0          
 
 
 
-##### 新增worker节点
+#### 新增worker节点(kubeadm)
 
 在worker1和2上运行
 
@@ -652,7 +652,542 @@ kube-system   weave-net-qb6ns                      2/2     Running   0          
 
 
 
+# 3 k8s基本概念和操作
 
+## 1) kubectl 配置
+
+环境：之前通过kubeadm搭建3节点集群环境
+
+master上查看集群节点状态
+
+```shell
+[root@k8s-master ~]# kubectl get node
+NAME         STATUS   ROLES    AGE   VERSION
+k8s-master   Ready    master   34m   v1.18.2
+k8s-node1    Ready    <none>   19m   v1.18.2
+k8s-node2    Ready    <none>   19m   v1.18.2
+```
+
+### 1.1 kubectl通过mac访问k8s集群
+
+#### 查看mac的minikube配置文件
+
++ 当mac生成minikube单节点k8s集群的时候，会在mac系统~/.kube/config生成配置文件
+
++ 这样kubectl可以在mac直接访问minikube的k8s集群
+
+```yaml
+wangjunxiang@My_MacBook_pro_2018  ~  less ~/.kube/config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /Users/wangjunxiang/.minikube/ca.crt
+    server: https://192.168.99.101:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    user: minikube
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: minikube
+  user:
+    client-certificate: /Users/wangjunxiang/.minikube/profiles/minikube/client.crt
+    client-key: /Users/wangjunxiang/.minikube/profiles/minikube/client.key
+```
+
++ 如果让mac系统不ssh虚拟机访问多节点k8s集群，需要再master节点的~/.kube/config 配置文件 和 mac的~/.kube/config 结合
+
+#### 查看k8s-master节点的配置文件
+
+查看
+
+```shell
+[root@k8s-master ~]# cat .kube/config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EVXdOakV5TkRjeU5sb1hEVE13TURVd05ERXlORGN5Tmxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTHVBCmNnVWlJcGp2NUZIdFUzWFVRbzVGNjA1bmxlN0NkOVNWS2dnSndUSkZPRWlPY1F1RFR2SzMzL3oxZWlyTXBCbC8KZlhTc1p4Q0xCQkh3RG5jQ0JvWXZiQW9QanpvOGthV3VFa3JEWm10ZkhXOC9rN1VJNDR6Nk1Oak52NFFEdmF2QwprVWNra051Z3FQV1dGWFBFcmF6dUw0bTZnWFVkVVROdjZXVkg0RkJPT1ZUc29Cczl2bGV5a3ZBdTJoT2tDdklQCnRmY1d1MUxzdjhRMmMyVmdJbjRRMThmTjNFNnh3ajRkUTdZTkNINW8wbU5HWEdIYkRSSHpmSVA5WnlPMmRWY2wKRWdXMm5PanZMeGNoaytKTTh5aVVJTGc1K1BmM1hhQ1ZVNkdqalRoa2d0OUh4SkkxbEdEc3k4SXBRUkhacmVaZwpQOFVMcXhlbFBUTU9XU0ZKZ24wQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFLTFRETVdmUlcrSXp0K1pXa2lxYktHdGszNW0KdGtUODY4cGFEaTlsYlVJRXYwVDEvMUVzODVzV2pLQ3gwMUREeEJTRFhxdHdNWnhnSzJDODQ2eXZjZzluWHFvQwpZV2pKd3ZVVm8wM0c1NUFLQWhrbXUwTy83alFNenl5MmFydzgwOGxzY0VOT1dZelVUblJuOExzQ0V0d0JTWkZMCi8xbW5GeUJVcnBhMUU1MW55M251TDY3eGVuQVVWeW9jbFk5WFUveUtUNytFRkZudHBIWEdsa2YxRUpObzhwclgKTUpUTWp3bkNWVlI4RW0vOUttRTdNMG5IYWxzVVpWZDVjckV3NVpxOTdBVmVCcUpyT0Jmb0dXcXZnNFRRUWRhVApTNVM2WC9Lb3dUSHdkZTFQNThnMzhEYjY4MjFrdjZwU2IzRmtBeXJSbENHcGdlRzdQWFVtemcrTnQ5ST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    server: https://192.168.50.100:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJRzdSNVBmYnE4Tll3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TURBMU1EWXhNalEzTWpaYUZ3MHlNVEExTURZeE1qUTNNamhhTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXZxU3cyS0xESDVTelVTa1YKS3pybkFCa1BxdlZPbGtKOVJkRnREUjhBbk16L1lCL0MzU3lIY2FaOWF3SGNkUlpDNVZBWVZ5M1FCV29XUWphegpiMy95eW1aUDE0dC9jNVFBS0xUVHFPczBrZGszK3RrQUtqTUZTVTl4NHVyaHF1QldOYithdU9HZnppcUkxYVRHCkpIL0hqLzZtd2dRbzk2ejRyMGE5bnE0dG5FY1RuamZHU2tPQUhqd2xNaHVLRjJxMjJFQ1oxZUcrKzVncFVWSTQKZUZKcUhWMkNMWUQzbGdOMWZnSkt1Y0YvN1NTaU1uVmxBUndLQWpKQU1vRGg0NDcrNUM3WEs4bGh5amd5WDF5OApwY2hLUEVxWlhVNS9EcFBFa1h4MDRwN3R1eWtVbklPK21LNU15eXY4Q3VTd1BDdlE2dXVSUDBvcm9JY2E4V0VXClFkZDJId0lEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFHOUFQRUsxbHRDK1UyaWVrdStITFZ4V0kxK2RKcU1uSTJ5MQpqUkJ3OHdsR1A4a0h0N1I4TjdjblBuakVsTGhaOEdDUm1iTE5ZMU5DOWIrcFhxT0hRL0Z6YlF4YTJlOHBjMWNLCktrN3BsT3h5aEIyT2ZSOVNVQXM3RHZPWXhWRHBzYjhMeCswWDk5R0JaT0J6a2hwSXZYTC9LeVZCbGtrOWt6NVYKSmJPT3VvNWJCWDQ4bEdCWlBxbjlscjlDeHlCWndoU2hnQTVIOEU1alJFbit3cGNPVGVPSHc3YU9UQVNjOGpyQgo1MmdRZWQ0OFAzeXo5dldKdlZmR2dWZFlNZUloN0dkS0E1b3p0ZXcwaWVGNk1WeGluTkFxbElJeFhVNXAwNW5lCi9EUko3cFhZNE0zRnVGQ0poOVlKU21RMTVBVTFkdjFwNTgrUkpJZWEwb2lENnRCODJEWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBdnFTdzJLTERINVN6VVNrVkt6cm5BQmtQcXZWT2xrSjlSZEZ0RFI4QW5Nei9ZQi9DCjNTeUhjYVo5YXdIY2RSWkM1VkFZVnkzUUJXb1dRamF6YjMveXltWlAxNHQvYzVRQUtMVFRxT3Mwa2RrMyt0a0EKS2pNRlNVOXg0dXJocXVCV05iK2F1T0dmemlxSTFhVEdKSC9Iai82bXdnUW85Nno0cjBhOW5xNHRuRWNUbmpmRwpTa09BSGp3bE1odUtGMnEyMkVDWjFlRysrNWdwVVZJNGVGSnFIVjJDTFlEM2xnTjFmZ0pLdWNGLzdTU2lNblZsCkFSd0tBakpBTW9EaDQ0Nys1QzdYSzhsaHlqZ3lYMXk4cGNoS1BFcVpYVTUvRHBQRWtYeDA0cDd0dXlrVW5JTysKbUs1TXl5djhDdVN3UEN2UTZ1dVJQMG9yb0ljYThXRVdRZGQySHdJREFRQUJBb0lCQVFDTkdxS1dSYW44WnZodQpHdVZETVA2bkVPV0syTFFJL1Q5eGZMZWxYWXY3Z3JPRjl4d296ZnVWLysrV1V6TlVLbHpyRTJSZ3FsVHNuUC9LCmxHZ3RIOXVaT1M3aFQ2dk81UDFWSTdvQnJjMGtJazJQeWl1WUVGbGFVSVh2dVgrOEZQMWFITzRzNXpwN3d2bXkKZjVuMGkrc3VSZ0l4V2hqa2NNOUVGQ3puRk81SFd3QU5hVGZDcm53MHVKWTc0KzRnaG1wSVNCeVV3QnB5RUtJVQpXQkROeXpQN2VWSFFpbmJZd2dzazA5QkFKaFpxMTd4WlpLZjk5bWlub2pyRXYrYmtXaHhmRjFITnlDT2IyYkhhCmpnRTBValBlazhZME92T2Z3Q3pvVk5OUFV1WmlVWm5xVG4rdkJ4ckV2Yk91cjV5TDQwVWtPTDVKOE9PckJhTWwKSGpNZGtKQlpBb0dCQVBDbW5CaThSbWhBdDF6WExaWkk4SWpUaENZZW5zK0ZGZjZaM0FOMFU1N1BNWnluVEtNMQpFZHJlM3RkcmxjOGZxejgrVW1TVkNnczBZaVR3MWdKRkNrMXBzN2JoUnJXZzJ0MzQybTdaRmJaVjJjRUJ0cDArCnQ0YmlObDdkY0swOTNXTEtsWWJZSFRmOXlBK0hCQzlWZkV2R1Z3YXdKMUc2cEpKK3Z4OWs5ajlsQW9HQkFNck4KakxHbjVucTJwU0p1T1RkSjVzQlhYQ2hwSWpxcGt2R014L2Q2eXpUNFBDSmF2Zk9FbHRSNXFaeVExSUhWSENyZgprZWNpU3ZLamprMnBzaDNDOEYrVnhJbTNNK0w0S2xBVHBzOXREMnVKejNrMVJ2VFFGcHVNbDBNemJWVEpMLzhnCmJBT3lVdGxZaHJUTUx3Ulk3amtVWmxhcWtCVmZJVytKOG41cDVMRXpBb0dCQU40TGZRQTl5R0V0UllMK2NHdTQKaFdoYWNoYVNMa3FnSzdrdDBobkYzZG9zcDBRNkFiYWRvd25tbG9zQ0U4cDNHQlZVdGNWazEwMmJXZXRuNUs5WApjTGdaRGQ5eVlVSDVWN2wwZ21mQkdnMlJqVWhQQW1aNGxmSjVDMTNneUxTdzNuTG5KYXl6LzlISDhpNlJqOFQxCkJha05Ld05heWd6WlFEeURnbW0vU0k4WkFvR0FZWWRhV3ZGdzBLRFhaMmgwa1pjenBsb2MwcjVFbk11Q0JESDgKMUpJeitVUkx2d1craGNiRXRtZlAzcUJ6NGdBM3JKS1oydnJONmtRbm9rZXloY2VDeTZUOXdIRGZQZzYwWXBBZwp6MjRXVlZRUDk2MWNjMDFESWdrSmtXTEErRjVNZTdmKzJnUSsvWkVxTHZabXdnTjJoUEsvaUh3OEVGc1FmRkJ0CjBzZGdHS3NDZ1lFQXRRU2JXN2c4NFNWOTN3bVNMYjJEd0J5REYweXAvN0hLNS9RQkhJb0g2WHp2U05OTUVSS0cKdzJNRVZjZFV3Q21KT3Q1cmNvampnMndZYllaUTNqbUl2am5XV01UdGlFOStEaUF2ZGFUVkJObUwzWjRyUzc3agpXMHFOaW5YZWE1cmhRTGYrdVFIWHdtNEVSSWxOREZxNkNLem9FNmR6NTBMNmhNcWhLclFjQy9RPQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+```
+
+
+
+#### 修改mac本地配置文件~/.kube/config
+
+将minikube k8s集群和多节点k8s集群都配置在本机mac的配置文件中
+
++ 多节点k8s集群的集群名将kubernetes改为了kubeadm
+
+```shell
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /Users/wangjunxiang/.minikube/ca.crt
+    server: https://192.168.99.101:8443
+  name: minikube
+# 将k8s的master集群 cluster信息复制到这里
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EVXdOakV5TkRjeU5sb1hEVE13TURVd05ERXlORGN5Tmxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTHVBCmNnVWlJcGp2NUZIdFUzWFVRbzVGNjA1bmxlN0NkOVNWS2dnSndUSkZPRWlPY1F1RFR2SzMzL3oxZWlyTXBCbC8KZlhTc1p4Q0xCQkh3RG5jQ0JvWXZiQW9QanpvOGthV3VFa3JEWm10ZkhXOC9rN1VJNDR6Nk1Oak52NFFEdmF2QwprVWNra051Z3FQV1dGWFBFcmF6dUw0bTZnWFVkVVROdjZXVkg0RkJPT1ZUc29Cczl2bGV5a3ZBdTJoT2tDdklQCnRmY1d1MUxzdjhRMmMyVmdJbjRRMThmTjNFNnh3ajRkUTdZTkNINW8wbU5HWEdIYkRSSHpmSVA5WnlPMmRWY2wKRWdXMm5PanZMeGNoaytKTTh5aVVJTGc1K1BmM1hhQ1ZVNkdqalRoa2d0OUh4SkkxbEdEc3k4SXBRUkhacmVaZwpQOFVMcXhlbFBUTU9XU0ZKZ24wQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFLTFRETVdmUlcrSXp0K1pXa2lxYktHdGszNW0KdGtUODY4cGFEaTlsYlVJRXYwVDEvMUVzODVzV2pLQ3gwMUREeEJTRFhxdHdNWnhnSzJDODQ2eXZjZzluWHFvQwpZV2pKd3ZVVm8wM0c1NUFLQWhrbXUwTy83alFNenl5MmFydzgwOGxzY0VOT1dZelVUblJuOExzQ0V0d0JTWkZMCi8xbW5GeUJVcnBhMUU1MW55M251TDY3eGVuQVVWeW9jbFk5WFUveUtUNytFRkZudHBIWEdsa2YxRUpObzhwclgKTUpUTWp3bkNWVlI4RW0vOUttRTdNMG5IYWxzVVpWZDVjckV3NVpxOTdBVmVCcUpyT0Jmb0dXcXZnNFRRUWRhVApTNVM2WC9Lb3dUSHdkZTFQNThnMzhEYjY4MjFrdjZwU2IzRmtBeXJSbENHcGdlRzdQWFVtemcrTnQ5ST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    server: https://192.168.50.100:6443
+  # 将kubernetes改为kubeadm
+  name: kubeadm  
+#################
+contexts:
+- context:
+    cluster: minikube
+    user: minikube
+  name: minikube
+# 将k8s的master集群 context信息复制到这里
+- context:
+    # 将kubernetes改为kubeadm
+    cluster: kubeadm
+    user: kubernetes-admin
+    # kubernetes-admin@xxx 改为kubeadm
+  name: kubeadm
+###############
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: minikube
+  user:
+    client-certificate: /Users/wangjunxiang/.minikube/profiles/minikube/client.crt
+    client-key: /Users/wangjunxiang/.minikube/profiles/minikube/client.key
+# 将k8s的master集群 user信息复制到这里
+- name: kubernetes-admin
+  user:
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4akNDQWRxZ0F3SUJBZ0lJRzdSNVBmYnE4Tll3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TURBMU1EWXhNalEzTWpaYUZ3MHlNVEExTURZeE1qUTNNamhhTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXZxU3cyS0xESDVTelVTa1YKS3pybkFCa1BxdlZPbGtKOVJkRnREUjhBbk16L1lCL0MzU3lIY2FaOWF3SGNkUlpDNVZBWVZ5M1FCV29XUWphegpiMy95eW1aUDE0dC9jNVFBS0xUVHFPczBrZGszK3RrQUtqTUZTVTl4NHVyaHF1QldOYithdU9HZnppcUkxYVRHCkpIL0hqLzZtd2dRbzk2ejRyMGE5bnE0dG5FY1RuamZHU2tPQUhqd2xNaHVLRjJxMjJFQ1oxZUcrKzVncFVWSTQKZUZKcUhWMkNMWUQzbGdOMWZnSkt1Y0YvN1NTaU1uVmxBUndLQWpKQU1vRGg0NDcrNUM3WEs4bGh5amd5WDF5OApwY2hLUEVxWlhVNS9EcFBFa1h4MDRwN3R1eWtVbklPK21LNU15eXY4Q3VTd1BDdlE2dXVSUDBvcm9JY2E4V0VXClFkZDJId0lEQVFBQm95Y3dKVEFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFHOUFQRUsxbHRDK1UyaWVrdStITFZ4V0kxK2RKcU1uSTJ5MQpqUkJ3OHdsR1A4a0h0N1I4TjdjblBuakVsTGhaOEdDUm1iTE5ZMU5DOWIrcFhxT0hRL0Z6YlF4YTJlOHBjMWNLCktrN3BsT3h5aEIyT2ZSOVNVQXM3RHZPWXhWRHBzYjhMeCswWDk5R0JaT0J6a2hwSXZYTC9LeVZCbGtrOWt6NVYKSmJPT3VvNWJCWDQ4bEdCWlBxbjlscjlDeHlCWndoU2hnQTVIOEU1alJFbit3cGNPVGVPSHc3YU9UQVNjOGpyQgo1MmdRZWQ0OFAzeXo5dldKdlZmR2dWZFlNZUloN0dkS0E1b3p0ZXcwaWVGNk1WeGluTkFxbElJeFhVNXAwNW5lCi9EUko3cFhZNE0zRnVGQ0poOVlKU21RMTVBVTFkdjFwNTgrUkpJZWEwb2lENnRCODJEWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBdnFTdzJLTERINVN6VVNrVkt6cm5BQmtQcXZWT2xrSjlSZEZ0RFI4QW5Nei9ZQi9DCjNTeUhjYVo5YXdIY2RSWkM1VkFZVnkzUUJXb1dRamF6YjMveXltWlAxNHQvYzVRQUtMVFRxT3Mwa2RrMyt0a0EKS2pNRlNVOXg0dXJocXVCV05iK2F1T0dmemlxSTFhVEdKSC9Iai82bXdnUW85Nno0cjBhOW5xNHRuRWNUbmpmRwpTa09BSGp3bE1odUtGMnEyMkVDWjFlRysrNWdwVVZJNGVGSnFIVjJDTFlEM2xnTjFmZ0pLdWNGLzdTU2lNblZsCkFSd0tBakpBTW9EaDQ0Nys1QzdYSzhsaHlqZ3lYMXk4cGNoS1BFcVpYVTUvRHBQRWtYeDA0cDd0dXlrVW5JTysKbUs1TXl5djhDdVN3UEN2UTZ1dVJQMG9yb0ljYThXRVdRZGQySHdJREFRQUJBb0lCQVFDTkdxS1dSYW44WnZodQpHdVZETVA2bkVPV0syTFFJL1Q5eGZMZWxYWXY3Z3JPRjl4d296ZnVWLysrV1V6TlVLbHpyRTJSZ3FsVHNuUC9LCmxHZ3RIOXVaT1M3aFQ2dk81UDFWSTdvQnJjMGtJazJQeWl1WUVGbGFVSVh2dVgrOEZQMWFITzRzNXpwN3d2bXkKZjVuMGkrc3VSZ0l4V2hqa2NNOUVGQ3puRk81SFd3QU5hVGZDcm53MHVKWTc0KzRnaG1wSVNCeVV3QnB5RUtJVQpXQkROeXpQN2VWSFFpbmJZd2dzazA5QkFKaFpxMTd4WlpLZjk5bWlub2pyRXYrYmtXaHhmRjFITnlDT2IyYkhhCmpnRTBValBlazhZME92T2Z3Q3pvVk5OUFV1WmlVWm5xVG4rdkJ4ckV2Yk91cjV5TDQwVWtPTDVKOE9PckJhTWwKSGpNZGtKQlpBb0dCQVBDbW5CaThSbWhBdDF6WExaWkk4SWpUaENZZW5zK0ZGZjZaM0FOMFU1N1BNWnluVEtNMQpFZHJlM3RkcmxjOGZxejgrVW1TVkNnczBZaVR3MWdKRkNrMXBzN2JoUnJXZzJ0MzQybTdaRmJaVjJjRUJ0cDArCnQ0YmlObDdkY0swOTNXTEtsWWJZSFRmOXlBK0hCQzlWZkV2R1Z3YXdKMUc2cEpKK3Z4OWs5ajlsQW9HQkFNck4KakxHbjVucTJwU0p1T1RkSjVzQlhYQ2hwSWpxcGt2R014L2Q2eXpUNFBDSmF2Zk9FbHRSNXFaeVExSUhWSENyZgprZWNpU3ZLamprMnBzaDNDOEYrVnhJbTNNK0w0S2xBVHBzOXREMnVKejNrMVJ2VFFGcHVNbDBNemJWVEpMLzhnCmJBT3lVdGxZaHJUTUx3Ulk3amtVWmxhcWtCVmZJVytKOG41cDVMRXpBb0dCQU40TGZRQTl5R0V0UllMK2NHdTQKaFdoYWNoYVNMa3FnSzdrdDBobkYzZG9zcDBRNkFiYWRvd25tbG9zQ0U4cDNHQlZVdGNWazEwMmJXZXRuNUs5WApjTGdaRGQ5eVlVSDVWN2wwZ21mQkdnMlJqVWhQQW1aNGxmSjVDMTNneUxTdzNuTG5KYXl6LzlISDhpNlJqOFQxCkJha05Ld05heWd6WlFEeURnbW0vU0k4WkFvR0FZWWRhV3ZGdzBLRFhaMmgwa1pjenBsb2MwcjVFbk11Q0JESDgKMUpJeitVUkx2d1craGNiRXRtZlAzcUJ6NGdBM3JKS1oydnJONmtRbm9rZXloY2VDeTZUOXdIRGZQZzYwWXBBZwp6MjRXVlZRUDk2MWNjMDFESWdrSmtXTEErRjVNZTdmKzJnUSsvWkVxTHZabXdnTjJoUEsvaUh3OEVGc1FmRkJ0CjBzZGdHS3NDZ1lFQXRRU2JXN2c4NFNWOTN3bVNMYjJEd0J5REYweXAvN0hLNS9RQkhJb0g2WHp2U05OTUVSS0cKdzJNRVZjZFV3Q21KT3Q1cmNvampnMndZYllaUTNqbUl2am5XV01UdGlFOStEaUF2ZGFUVkJObUwzWjRyUzc3agpXMHFOaW5YZWE1cmhRTGYrdVFIWHdtNEVSSWxOREZxNkNLem9FNmR6NTBMNmhNcWhLclFjQy9RPQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+##############
+```
+
+#### mac验证配置文件是否加载
+
++ 已经获取到2个集群
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  cd ~/.kube
+wangjunxiang@My_MacBook_pro_2018  ~/.kube  kubectl config get-contexts
+CURRENT   NAME                 CLUSTER    AUTHINFO           NAMESPACE
+          kubeadm@kubernetes   kubeadm    kubernetes-admin
+*         minikube             minikube   minikube
+```
+
+
+
+### 1.2 kubectl mac下使用
+
+#### kubectl切换集群
+
++ 配置文件下加载这minikube和kubeadm2个集群
+
+
+
+`kubectl config get-contexts`  查看集群 *号在minikube代表当前连接minikube集群
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  ~/.kube  kubectl config get-contexts
+CURRENT   NAME       CLUSTER    AUTHINFO           NAMESPACE
+          kubeadm    kubeadm    kubernetes-admin
+*         minikube   minikube   minikube
+```
+
+`kubectl get node` 查看当前连接的集群 minikube信息
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  ~/.kube  kubectl get node
+NAME       STATUS   ROLES    AGE   VERSION
+minikube   Ready    master   28m   v1.18.0
+```
+
+`kubectl config use-context kubeadm` 切换连接的集群 minikube 为 kubeadm
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl config use-context kubeadm
+Switched to context "kubeadm".
+```
+
+切换到多节点集群kubeadm之后，就可以直接在mac用命令查看虚拟机3节点k8s信息了
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl get node
+NAME         STATUS   ROLES    AGE   VERSION
+k8s-master   Ready    master   82m   v1.18.2
+k8s-node1    Ready    <none>   67m   v1.18.2
+k8s-node2    Ready    <none>   67m   v1.18.2
+```
+
+
+
+## 2) k8s节点和标签
+
+
+
+`kubectl describe node k8s-master` 查看单个节点 k8s-master 的详细信息
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl describe node k8s-master
+Name:               k8s-master
+Roles:              master
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-master
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/master=
+Annotations:        kubeadm.alpha.kubernetes.io/cri-socket: /var/run/dockershim.sock
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 06 May 2020 20:47:48 +0800
+Taints:             node-role.kubernetes.io/master:NoSchedule
+Unschedulable:      false
+Lease:
+  HolderIdentity:  k8s-master
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 06 May 2020 22:13:35 +0800
+Conditions:
+  Type                 Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----                 ------  -----------------                 ------------------                ------                       -------
+  NetworkUnavailable   False   Wed, 06 May 2020 20:58:45 +0800   Wed, 06 May 2020 20:58:45 +0800   WeaveIsUp                    Weave pod has set this
+  MemoryPressure       False   Wed, 06 May 2020 22:09:40 +0800   Wed, 06 May 2020 20:47:44 +0800   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure         False   Wed, 06 May 2020 22:09:40 +0800   Wed, 06 May 2020 20:47:44 +0800   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure          False   Wed, 06 May 2020 22:09:40 +0800   Wed, 06 May 2020 20:47:44 +0800   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready                True    Wed, 06 May 2020 22:09:40 +0800   Wed, 06 May 2020 20:58:54 +0800   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  10.0.2.15
+  Hostname:    k8s-master
+Capacity:
+  cpu:                2
+  ephemeral-storage:  41921540Ki
+  hugepages-2Mi:      0
+  memory:             1882144Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  38634891201
+  hugepages-2Mi:      0
+  memory:             1779744Ki
+  pods:               110
+System Info:
+  Machine ID:                 3045291a94e3084fb518d21e9d0b3131
+  System UUID:                3045291A-94E3-084F-B518-D21E9D0B3131
+  Boot ID:                    01e2dc8f-0836-40c3-9e9e-35c316ae1970
+  Kernel Version:             3.10.0-957.12.2.el7.x86_64
+  OS Image:                   CentOS Linux 7 (Core)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  docker://19.3.8
+  Kubelet Version:            v1.18.2
+  Kube-Proxy Version:         v1.18.2
+PodCIDR:                      172.100.0.0/24
+PodCIDRs:                     172.100.0.0/24
+Non-terminated Pods:          (8 in total)
+  Namespace                   Name                                  CPU Requests  CPU Limits  Memory Requests  Memory Limits  AGE
+  ---------                   ----                                  ------------  ----------  ---------------  -------------  ---
+  kube-system                 coredns-7ff77c879f-fvlm7              100m (5%)     0 (0%)      70Mi (4%)        170Mi (9%)     16h
+  kube-system                 coredns-7ff77c879f-szws6              100m (5%)     0 (0%)      70Mi (4%)        170Mi (9%)     16h
+  kube-system                 etcd-k8s-master                       0 (0%)        0 (0%)      0 (0%)           0 (0%)         16h
+  kube-system                 kube-apiserver-k8s-master             250m (12%)    0 (0%)      0 (0%)           0 (0%)         16h
+  kube-system                 kube-controller-manager-k8s-master    200m (10%)    0 (0%)      0 (0%)           0 (0%)         16h
+  kube-system                 kube-proxy-vm7db                      0 (0%)        0 (0%)      0 (0%)           0 (0%)         16h
+  kube-system                 kube-scheduler-k8s-master             100m (5%)     0 (0%)      0 (0%)           0 (0%)         16h
+  kube-system                 weave-net-qb6ns                       20m (1%)      0 (0%)      0 (0%)           0 (0%)         16h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                770m (38%)  0 (0%)
+  memory             140Mi (8%)  340Mi (19%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:              <none>
+
+```
+
+
+
+kubectl get node -o wide	
+
++ -o yaml	输出yaml格式信息
++ -o json     json格式
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl get node -o wide
+NAME         STATUS   ROLES    AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                KERNEL-VERSION               CONTAINER-RUNTIME
+k8s-master   Ready    master   89m   v1.18.2   10.0.2.15     <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+k8s-node1    Ready    <none>   75m   v1.18.2   10.0.2.15     <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+k8s-node2    Ready    <none>   75m   v1.18.2   10.0.2.15     <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+```
+
+
+
+### 设置label标签
+
+
+
+给`k8s-master`节点设置标签（key=value格式）
+
+`kubectl label node k8s-master env=test`
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl label node k8s-master env=test
+node/k8s-master labeled
+```
+
+
+
+查看各个节点label标签 ，查看设置的env=test标签是否生效 
+
+`kubectl get node --show-labels` 
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl get node --show-labels
+NAME         STATUS   ROLES    AGE   VERSION   LABELS
+k8s-master   Ready    master   96m   v1.18.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,env=test,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-master,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+k8s-node1    Ready    <none>   81m   v1.18.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-node1,kubernetes.io/os=linux
+k8s-node2    Ready    <none>   81m   v1.18.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-node2,kubernetes.io/os=linux
+
+```
+
+
+
+删除`k8s-master`节点的标签 (删除key-) 带'-'符号
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl label node k8s-master env-
+node/k8s-master labeled
+```
+
+
+
+### 设置label节点ROLES
+
+查看节点roles
+
+```
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl get node
+NAME         STATUS   ROLES    AGE    VERSION
+k8s-master   Ready    master   100m   v1.18.2
+k8s-node1    Ready    <none>   85m    v1.18.2
+k8s-node2    Ready    <none>   85m    v1.18.2
+
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl get node --show-labels
+NAME         STATUS   ROLES    AGE    VERSION   LABELS
+k8s-master   Ready    master   101m   v1.18.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-master,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+k8s-node1    Ready    <none>   86m    v1.18.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-node1,kubernetes.io/os=linux
+k8s-node2    Ready    <none>   86m    v1.18.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-node2,kubernetes.io/os=linux
+
+```
+
+node1 和node2的roles都为空，roles是特殊的label
+
+设置roles
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl label nodes k8s-node1 node-role.kubernetes.io/worker=
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl label nodes k8s-node2 node-role.kubernetes.io/worker=
+```
+
+查看，node1和2的roles变为了worker
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp  kubectl get node
+NAME         STATUS   ROLES    AGE    VERSION
+k8s-master   Ready    master   102m   v1.18.2
+k8s-node1    Ready    worker   88m    v1.18.2
+k8s-node2    Ready    worker   88m    v1.18.2
+```
+
+
+
+## 3) k8s调度最小单位:Pod
+
+### POD
+
+<img src="https://images.gitee.com/uploads/images/2020/0507/132129_1d9d738c_7530643.png" style="zoom:50%;" />
+
++ 在同一个命名空间或者网络空间的1个或多个容器
+  + 相同IP地址
++ 共享资源(volume)的1个或多个容器
++ 在k8s中最小调度单位
+
+
+
+### 定义POD
+
+#### 定义pod
+
++ kind 定义pod
++ spec指明几个containers
++ metadata
+  + name 定义这个pod的名字 nginx-busybox
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-busybox
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+  - name: busybox
+    image: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "while true; do echo hello; sleep 10;done"]
+```
+
+#### 创建pod
+
+```shell
+# 指定yml文件
+kubectl create -f nginx_busybox.yml
+```
+
+会指定某个k8s节点下载对应镜像，比较慢
+
+### 对pod操作命令
+
+#### 查询pods
+
+```shell
+kubectl get pods
+# 获取跟多信息，比如ip地址
+kubectl get pods nginx-busybox -o wide
+```
+
+#### 获取pod详细信息
+
+```shell
+kubectl describe pod nginx-busybox
+```
+
+#### 进入pod的指定的容器
+
+```shell
+# pod中有2个容器，默认进入第一个容器，-c 指定进入nginx的容器中
+kubectl exec nginx-busybox -c nginx -it sh
+```
+
+#### 指定pod下某个容器执行命令
+
++ 根据-c 容器名
++ -- 命令
+
+```shell
+kubectl exec  nginx-busybox -c busybox -- date
+Wed May  6 16:56:23 UTC 2020
+```
+
+```shell
+kubectl exec  nginx-busybox -c nginx -- date
+Wed May  6 16:56:33 UTC 2020
+```
+
+#### 删除pod
+
+通过yml文件
+
+```shell
+kubectl delete -f nginx_busybox.yml
+```
+
+
+
+------------
+
+### 解决网络问题引起的报错：
+
+pod does not exist
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp/1k8s  kubectl exec  nginx-busybox -- date
+Defaulting container name to nginx.
+Use 'kubectl describe pod/nginx-busybox -n default' to see all of the containers in this pod.
+error: unable to upgrade connection: pod does not exist
+```
+
+#### 原因分析：
+
+k8s集群3个节点ip都是10网段
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp/1k8s  kubectl get node -o wide
+NAME         STATUS   ROLES    AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                KERNEL-VERSION               CONTAINER-RUNTIME
+k8s-master   Ready    master   3h43m   v1.18.2   10.0.2.15     <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+k8s-node1    Ready    worker   3h28m   v1.18.2   10.0.2.15     <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+k8s-node2    Ready    worker   3h29m   v1.18.2   10.0.2.15     <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+```
+
+但是ssh到机器上看到实际还有eth1网段192.168.50.0网段 是和mac客户端同网段，但是调用的是10网段，需要将k8s集群3个网段都改为192.168.50.0网段
+
+<img src="https://images.gitee.com/uploads/images/2020/0507/152110_1511197a_7530643.png" style="zoom:100%;" />
+
+
+
+#### 解决办法：
+
+登录k8s3个节点分别吧自己eth1网段(192.168.50.xx)地址，修改各自配置文件/etc/sysconfig/kubelet，并重启3个节点的kubelet服务
+
+master
+
+192.168.50.100
+
+```shell
+[root@k8s-master ~]# cat  /etc/sysconfig/kubelet
+KUBELET_EXTRA_ARGS="--node-ip=192.168.50.100"
+[root@k8s-master ~]# systemctl restart kubelet
+```
+
+node1
+
+192.168.50.101
+
+```shell
+[root@k8s-node1 ~]# cat  /etc/sysconfig/kubelet
+KUBELET_EXTRA_ARGS="--node-ip=192.168.50.101"
+[root@k8s-master ~]# systemctl restart kubelet
+```
+
+node2
+
+192.168.50.102
+
+```shell
+[root@k8s-node2 ~]# cat  /etc/sysconfig/kubelet
+KUBELET_EXTRA_ARGS="--node-ip=192.168.50.102"
+[root@k8s-master ~]# systemctl restart kubelet
+```
+
+此时，在mac客户端查看，解决。
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp/1k8s  kubectl get node -o wide
+NAME         STATUS   ROLES    AGE     VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE                KERNEL-VERSION               CONTAINER-RUNTIME
+k8s-master   Ready    master   3h47m   v1.18.2   192.168.50.100   <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+k8s-node1    Ready    worker   3h32m   v1.18.2   192.168.50.101   <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+k8s-node2    Ready    worker   3h32m   v1.18.2   192.168.50.102   <none>        CentOS Linux 7 (Core)   3.10.0-957.12.2.el7.x86_64   docker://19.3.8
+```
 
 
 
