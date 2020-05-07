@@ -1191,6 +1191,316 @@ k8s-node2    Ready    worker   3h32m   v1.18.2   192.168.50.102   <none>        
 
 
 
+--------------
+
+
+
+# 4 Namespace命名空间
+
+## Namespace
+
+用途：
+
++ 例如：不同团队，不同项目使用同一套k8s环境，需要Namespace隔离
++ 避免团队之间沟通成本，service的冲突等
+
+
+
+查看k8s集群 Namespace
+
+```shell
+$ kubectl get namespace
+NAME              STATUS   AGE
+default           Active   4h49m
+kube-node-lease   Active   4h49m
+kube-public       Active   4h49m
+kube-system       Active   4h49m
+```
+
+
+
+创建Namespace
+
+```shell
+$ kubectl create namespace demo
+
+# 查看
+$ kubectl get namespace
+NAME              STATUS   AGE
+default           Active   4h58m
+demo              Active   11s		#<-----
+kube-node-lease   Active   4h58m
+kube-public       Active   4h58m
+kube-system       Active   4h58m
+```
+
+
+
+根据Namespace进行资源过滤
+
+获取kube-system这个Namespace里面的pod
+
+```shell
+$ kubectl get pod --namespace kube-system
+NAME                                 READY   STATUS    RESTARTS   AGE
+coredns-7ff77c879f-fvlm7             1/1     Running   0          4h50m
+coredns-7ff77c879f-szws6             1/1     Running   0          4h50m
+etcd-k8s-master                      1/1     Running   0          4h51m
+kube-apiserver-k8s-master            1/1     Running   0          4h51m
+kube-controller-manager-k8s-master   1/1     Running   0          4h51m
+kube-proxy-4g78p                     1/1     Running   0          4h36m
+kube-proxy-cf996                     1/1     Running   0          4h36m
+kube-proxy-vm7db                     1/1     Running   0          4h50m
+kube-scheduler-k8s-master            1/1     Running   0          4h51m
+weave-net-bns2b                      2/2     Running   1          4h36m
+weave-net-k7xph                      2/2     Running   0          4h36m
+weave-net-qb6ns                      2/2     Running   0          4h40m
+```
+
+
+
+## 实例：在指定Namespace中创建pod
+
+### 1) 创建namespace：demo
+
+```shell
+$ kubectl create namespace demo
+namespace/demo created
+$ kubectl get namespace
+NAME              STATUS   AGE
+default           Active   4h58m
+demo              Active   11s
+kube-node-lease   Active   4h58m
+kube-public       Active   4h58m
+kube-system       Active   4h58m
+```
+
+### 2) 分别创建指定namespace的pod和不指定namespace的pod
+
++ 如果不指定namespace，默认pod创建会在default的namespace中
++ nginx.yml   没有指定namespace
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	#pod名
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+```
+
++ nginx_demo.yml    指定namespace
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	#pod名
+  name: nginx
+  #指定pod创建在namespace中
+  namespace: demo
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+```
+
+根据2个yml文件创建2个不同的pod
+
+```shell
+$ kubectl create -f nginx.yml
+$ kubectl create -f nginx_demo.yml
+```
+
+### 查看pod
+
+查看pod，发现只能查看到默认default的namespace的pod
+
+```shell
+$ kubectl get pod
+NAME    READY   STATUS    RESTARTS   AGE
+nginx   1/1     Running   0          85s
+```
+
+查看 namespace是demo的pod
+
+`--namespace demo`
+
+```shell
+$ kubectl get pod --namespace demo
+NAME    READY   STATUS    RESTARTS   AGE
+nginx   1/1     Running   0          6m38s
+```
+
+查看所有namespace下的pod
+
+`--all-namespaces`
+
+```shell
+$ kubectl get pod --all-namespaces
+NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE
+default       nginx                                1/1     Running   0          9m37s
+demo          nginx                                1/1     Running   0          8m31s
+kube-system   coredns-7ff77c879f-fvlm7             1/1     Running   0          5h11m
+kube-system   coredns-7ff77c879f-szws6             1/1     Running   0          5h11m
+kube-system   etcd-k8s-master                      1/1     Running   0          5h11m
+kube-system   kube-apiserver-k8s-master            1/1     Running   0          5h11m
+kube-system   kube-controller-manager-k8s-master   1/1     Running   0          5h11m
+kube-system   kube-proxy-4g78p                     1/1     Running   0          4h56m
+kube-system   kube-proxy-cf996                     1/1     Running   0          4h56m
+kube-system   kube-proxy-vm7db                     1/1     Running   0          5h11m
+kube-system   kube-scheduler-k8s-master            1/1     Running   0          5h11m
+kube-system   weave-net-bns2b                      2/2     Running   1          4h56m
+kube-system   weave-net-k7xph                      2/2     Running   0          4h56m
+kube-system   weave-net-qb6ns                      2/2     Running   0          5h1m
+```
+
+### 删除pod
+
+```shell
+$ kubectl delete -f nginx_demo.yml
+$ kubectl delete -f nginx.yml
+```
+
+
+
+
+
+
+
+
+
+## 创建context
+
+### 用途：
+
++ 用来做namespace隔离，不同的团队用不同的context
+
++ 在`kubectl get pod` 查询的namespace是默认default
+
++ 在`kubectl config get-contexts` 中，Namespace是空值，代表默认是default
+
+```shell
+$ kubectl config get-contexts
+CURRENT   NAME       CLUSTER    AUTHINFO           NAMESPACE
+*         kubeadm    kubeadm    kubernetes-admin
+          minikube   minikube   minikube
+```
+
+### 创建context
+
+创建 --user=kubernetes-admin --cluster=kubeadm   namespace是demo的context
+
++ 指定账户，因为在mac环境下通过kubectl的配置文件~/.kube/config ，里面users只有minikube和kubernetes-admin，所以指定kubernetes-admin 新建的context，切到新context之后操作是不需要用账户密码
++ 参考了: https://blog.csdn.net/xujiamin0022016/article/details/103659431
+
+```shell
+$ kubectl config set-context demo --user=kubernetes-admin --cluster=kubeadm --namespace=demo
+Context "demo" created.
+```
+
+### 查看context
+
+```shell
+$ kubectl config view
+......
+....
+contexts:
+# 刚才创建demo的context
+- context:
+    cluster: kubeadm
+    namespace: demo
+    user: kubeadm
+  name: demo
+# 之前存在的2个context
+- context:
+    cluster: kubeadm
+    user: kubernetes-admin
+  name: kubeadm
+- context:
+    cluster: minikube
+    user: minikube
+  name: minikube
+current-context: kubeadm
+....
+.......
+```
+
+### 切换context
+
+查看
+
+```shell
+$ kubectl config get-contexts
+CURRENT   NAME       CLUSTER    AUTHINFO           NAMESPACE
+          demo       kubeadm    kubeadm            demo
+*         kubeadm    kubeadm    kubernetes-admin
+          minikube   minikube   minikube
+```
+
+切换
+
+```shell
+# 切换demo
+$ kubectl config use-context demo
+Switched to context "demo".
+# 查看 *在demo这里
+$ kubectl config get-contexts
+CURRENT   NAME       CLUSTER    AUTHINFO           NAMESPACE
+*         demo       kubeadm    kubeadm            demo
+          kubeadm    kubeadm    kubernetes-admin
+          minikube   minikube   minikube
+```
+
+
+
+### 删除context
+
+先切换到 kubeadm 的context上
+
+```shell
+$ kubectl config use-context kubeadm
+```
+
+切换其他context在删除context
+
+```shell
+$ kubectl config delete-context demo
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
