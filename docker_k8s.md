@@ -1714,6 +1714,17 @@ $ kubectl get deployment nginx-deployment -o yaml
 
 
 
+
+
+### 删除Deployment
+
+```shell
+$ kubectl delete deployment nginx-deployment
+deployment.apps "nginx-deployment" deleted
+```
+
+
+
 ### 删除Deployment的pod
 
 删除后，controller会自动的重新创建预期的deployment，保证配置文件中的数量和版本等信息符合预期
@@ -1913,7 +1924,7 @@ Events:
 
 
 
-## 修改Deployment几种方式
+## 总结：修改Deployment几种方式
 
 ### apply
 
@@ -1976,33 +1987,196 @@ deployment.apps/nginx-deployment image updated
 
 
 
+# 6 Deployment 更新修改过程详解
+
+## Replicaset (controller)
+
+通过kubectl 负责对 image更新，对scale横向扩展更新，都是通过Replicaset 的 controller实现
+
++ 更新也是一个个的down之后一个个up，不会全部down后up
 
 
 
 
 
+## 实例
+
+### nginx_deploymemt.yml
+
+```yaml
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: nginx-deployment-test
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+```
+
+### 通过apply  yaml文件创建Deployment
+
+```shell
+$ kubectl apply -f nginx_deploymemt.yml
+```
+
+### 查看Deployment
+
+```shell
+$ kubectl get deployment
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment-test   4/4     4            4           12s
+```
 
 
 
+### 查看Replicaset
+
+#### 查看Replicaset详细信息
+
+`kubectl describe deployments nginx-deployment-test`
+
+```shell
+$ kubectl describe deployments nginx-deployment-test
+......
+...
+.
+.
+.Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-test-5bf87f5f59 (4/4 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  6h43m  deployment-controller  Scaled up replica set nginx-deployment-test-5bf87f5f59 to 4
+```
 
 
 
+这个replicaset 用来维护 Deployment的scale横向扩展的数量
+
+```shell
+$ kubectl get replicasets
+NAME                               DESIRED   CURRENT   READY   AGE
+nginx-deployment-test-5bf87f5f59   4         4         4       8m37s
+```
+
+#### 设置scale横向扩展的Deployment中pod4个变为6个
+
+```shell
+$ kubectl scale --current-replicas=4 --replicas=6 deployment/nginx-deployment-test
+deployment.apps/nginx-deployment-test scaled
+```
+
+再次查看Replicaset详细信息
+
+```shell
+$ kubectl describe deployments nginx-deployment-test
+...
+.......
+..............
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-test-5bf87f5f59 (6/6 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  6h46m  deployment-controller  Scaled up replica set nginx-deployment-test-5bf87f5f59 to 4
+  Normal  ScalingReplicaSet  6h32m  deployment-controller  Scaled up replica set nginx-deployment-test-5bf87f5f59 to 6
+```
 
 
 
+#### 升级pod的image版本
 
+```shell
+$ kubectl set image deployment/nginx-deployment-test nginx=nginx:1.9.1 
+```
 
+查看状态
 
+```shell
+$ kubectl rollout status deployment nginx-deployment-test
+deployment "nginx-deployment-test" successfully rolled out
+```
 
+### 回滚Deployment
 
+#### 查看版本更新历史
 
+默认只保留2个版本(可通过配置设置保存更多版本)
 
+```shell
+$ kubectl rollout history deployment nginx-deployment-test
+deployment.apps/nginx-deployment-test
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+```
 
+#### 分别单独查看2个更新版本的细节
 
+```shell
+$ kubectl rollout history deployment nginx-deployment-test --revision 1
+deployment.apps/nginx-deployment-test with revision #1
+Pod Template:
+  Labels:	app=nginx
+	pod-template-hash=5bf87f5f59
+  Containers:
+   nginx:
+    Image:	nginx:1.7.9
+    Port:	80/TCP
+    Host Port:	0/TCP
+    Environment:	<none>
+    Mounts:	<none>
+  Volumes:	<none>
 
+$ kubectl rollout history deployment nginx-deployment-test --revision 2
+deployment.apps/nginx-deployment-test with revision #2
+Pod Template:
+  Labels:	app=nginx
+	pod-template-hash=678645bf77
+  Containers:
+   nginx:
+    Image:	nginx:1.9.1
+    Port:	80/TCP
+    Host Port:	0/TCP
+    Environment:	<none>
+    Mounts:	<none>
+  Volumes:	<none>
 
+```
 
+#### 回滚
 
++ 也可以通过 `kubectl rollout history deployment nginx-deployment-test` 查看历史版本之后，通过`kubectl rollout undo deployment nginx-deployment-test --to-revision 版本号` 选择回滚到指定版本
+
+```shell
+$ kubectl rollout undo deployment nginx-deployment-test
+deployment.apps/nginx-deployment-test rolled back
+```
+
+#### 查看已经从nginx1.9版本回滚到1.7版本
+
+```shell
+$ kubectl get deployment nginx-deployment-test -o wide
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS   IMAGES        SELECTOR
+nginx-deployment-test   4/4     4            4           7h44m   nginx        nginx:1.7.9   app=nginx
+```
 
 
 
