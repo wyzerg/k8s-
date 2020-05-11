@@ -1477,6 +1477,557 @@ $ kubectl config delete-context demo
 
 
 
+# 5 Controller和Deployment
+
+<img src="https://images.gitee.com/uploads/images/2020/0511/120851_2a16482b_7530643.png" style="zoom:33%;" />
+
+
+
+etcd：k8s分布式存储同步信息数据库
+
+API server：提供对外通信的接口，kubectl 通过api管理k8s集群
+
+Scheduler：集群创建pod会根据调度算法将pod分配调度在某个节点上
+
+controller：在Deployment中，将当前状态变为期望状态的控制器
+
+
+
+## controller概念
+
+代码角度
+
+```go
+for {
+  desired := getDesiredState()
+  current := getCurrentState()
+  makeChanges(desired,current)
+}
+```
+
+desired：期望的状态(例如:期望web服务状态是running)
+
+current：当前状态
+
+makechanges：controller主要是将当前状态变为期望状态
+
+
+
+
+
+## Deployment 和Pod类型
+
+Deployment 描述期望预期的状态，controller去监听实际状态，让当前状态不是期望的状态时，去改变状态达到期望状态
+
+### pod
+
+如果部署的pod，当pod哪台机器宕机，随即pod也会失效，pod不是稳定的存在，纯pod是无法确保其正常运行，无法对其异常做出处理的
+
+pod是k8s里调度的最小单位，而Deployment是更高一层的定义
+
+### Deployment
+
+如果部署Deployment，controller会尽可能让当前状态等于预期状态，当Deployment中的container/pod是期望容器运行，如果container机器宕机，Deployment就不是期望的状态，这时，controller就会起作用，尝试在其他节点重新创建Deployment或者pod
+
+
+
+## Deployment 实例
+
+### 准备3个yaml文件
+
+```shell
+wangjunxiang@My_MacBook_pro_2018  /tmp/2k8s  ll
+total 24
+-rw-r--r--  1 wangjunxiang  wheel  313  5 11 14:04 nginx_deploymemt_scale.yml
+-rw-r--r--  1 wangjunxiang  wheel  318  5 11 14:03 nginx_deployment.yaml
+-rw-r--r--  1 wangjunxiang  wheel  313  5 11 14:03 nginx_deployment_update.yml
+```
+
+
+
+#### nginx_deployment.yaml
+
++ 基础Deployment
+
+```yaml
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: nginx-deployment		# 定义 Deployment 名称
+spec:
+  selector:
+    matchLabels:		# selector根据labels去匹配
+      app: nginx		# 如果labels是nginx,就让下面replicas为2
+  replicas: 2 
+  template: 				#选择器定义的模板
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+```
+
+
+
+#### nginx_deployment_update.yml
+
++ 进行nginx升级
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.8		# 1.7.9 --> 1.8
+        ports:
+        - containerPort: 80
+```
+
+
+
+#### nginx_deploymemt_scale.yml
+
++ 进行nginx横向扩展
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 4				# 2 --> 4
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.8
+        ports:
+        - containerPort: 80
+```
+
+
+
+### 创建Deployment
+
+通过 nginx_deployment.yaml 生成基础 deployment.yaml
+
+```shell
+$ kubectl create -f nginx_deployment.yaml
+deployment.apps/nginx-deployment created
+```
+
+
+
+
+
+### 查看Deployment信息
+
+```shell
+$ kubectl get deployment
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   2/2     2            2           27m
+```
+
+```shell
+$ kubectl get pod
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-5bf87f5f59-74pgk   1/1     Running   0          27m
+nginx-deployment-5bf87f5f59-nkftw   1/1     Running   0          27m
+```
+
+```shell
+$ kubectl get pod -l app=nginx
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-5bf87f5f59-74pgk   1/1     Running   0          27m
+nginx-deployment-5bf87f5f59-nkftw   1/1     Running   0          27m
+```
+
+```shell
+$ kubectl get deployment nginx-deployment -o wide
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES        SELECTOR
+nginx-deployment   2/2     2            2           73m   nginx        nginx:1.7.9   app=nginx
+```
+
+```shell
+$ kubectl describe deployment nginx-deployment
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Mon, 11 May 2020 07:20:20 +0800
+Labels:                 <none>
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=nginx
+Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx
+  Containers:
+   nginx:
+    Image:        nginx:1.7.9
+    Port:         80/TCP
+    Host Port:    0/TCP
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-5bf87f5f59 (2/2 replicas created)
+Events:          <none>
+```
+
+
+
+#### 查看Deployment对应的yaml文件
+
+```shell
+$ kubectl get deployment nginx-deployment -o yaml
+```
+
+
+
+
+
+### 删除Deployment的pod
+
+删除后，controller会自动的重新创建预期的deployment，保证配置文件中的数量和版本等信息符合预期
+
+```shell
+$ kubectl delete pod nginx-deployment-5bf87f5f59-74pgk
+pod "nginx-deployment-5bf87f5f59-74pgk" deleted
+```
+
+
+
+### 升级Deploytment的pod版本
+
+查看Deployment的nginx版本1.7
+
+```shell
+$ kubectl get deployment nginx-deployment -o wide
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES        SELECTOR
+nginx-deployment   2/2     2            2           88m   nginx        nginx:1.7.9   app=nginx
+```
+
+通过刚才的 nginx_deployment_update.yml 里只需要修改nginx版本，用来更新原来的Deployment
+
+#### apply命令包含create/update
+
++ apply 包含 创建+更新
+
+```shell
+$ kubectl apply -f nginx_deployment_update.yml
+Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
+deployment.apps/nginx-deployment configured
+```
+
+更新后查看版本
+
+1.7升级为1.8
+
+```shell
+$ kubectl get deployment nginx-deployment -o wide
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES      SELECTOR
+nginx-deployment   2/2     1            2           92m   nginx        nginx:1.8   app=nginx
+```
+
+#### 查看升级的Deployment信息
+
+```shell
+$ kubectl get pod -l app=nginx -o wide
+NAME                                READY   STATUS              RESTARTS   AGE     IP          NODE        NOMINATED NODE   READINESS GATES
+nginx-deployment-5bf87f5f59-hnhnh   1/1     Running             0          9m21s   10.32.0.3   k8s-node2   <none>           <none>
+nginx-deployment-5bf87f5f59-nkftw   1/1     Running             0          94m     10.32.0.2   k8s-node2   <none>           <none>
+nginx-deployment-5f8c6846ff-b8624   0/1     ContainerCreating   0          9s      <none>      k8s-node1   <none>           <none>
+```
+
+发现有2个running的是1.7版本，其中有一个ContainerCreating的是在升级1.8，正在下载镜像
+
+只有下载好后镜像替换pod
+
+```shell
+$ kubectl describe pod nginx-deployment-5f8c6846ff-b8624
+Name:           nginx-deployment-5f8c6846ff-b8624
+Namespace:      default
+Priority:       0
+Node:           k8s-node1/192.168.50.101
+Start Time:     Mon, 11 May 2020 09:05:49 +0800
+Labels:         app=nginx
+                pod-template-hash=5f8c6846ff
+Annotations:    <none>
+Status:         Pending
+IP:
+IPs:            <none>
+Controlled By:  ReplicaSet/nginx-deployment-5f8c6846ff
+Containers:
+  nginx:
+    Container ID:
+    Image:          nginx:1.8
+    Image ID:
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       ContainerCreating
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-dh4hg (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             False
+  ContainersReady   False
+  PodScheduled      True
+Volumes:
+  default-token-dh4hg:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-dh4hg
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age    From                Message
+  ----    ------     ----   ----                -------
+  Normal  Scheduled  6h43m  default-scheduler   Successfully assigned default/nginx-deployment-5f8c6846ff-b8624 to k8s-node1
+  Normal  Pulling    6h32m  kubelet, k8s-node1  Pulling image "nginx:1.8" 
+  # 正在下载镜像
+```
+
+等待下载镜像后k8s自动部署，会替换掉之前1.7版本的pod
+
+
+
+### 横向扩展Deployment的pod数量
+
+#### apply镜像更新Deployment操作
+
+横向扩展
+
+```shell
+$ kubectl apply -f nginx_deploymemt_scale.yml
+deployment.apps/nginx-deployment configured
+```
+
+#### 查看横向扩展信息
+
+```shell
+$ kubectl get deployment nginx-deployment -o wide
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES      SELECTOR
+nginx-deployment   2/4     4            2           132m   nginx        nginx:1.8   app=nginx
+```
+
+2/4代表还在更新中
+
+```shell
+$ kubectl get pod -l app=nginx -o wide
+NAME                                READY   STATUS              RESTARTS   AGE   IP          NODE        NOMINATED NODE   READINESS GATES
+nginx-deployment-5f8c6846ff-b8624   1/1     Running             0          38m   10.32.0.3   k8s-node1   <none>           <none>
+nginx-deployment-5f8c6846ff-csjzw   0/1     ContainerCreating   0          97s   <none>      k8s-node2   <none>           <none>
+nginx-deployment-5f8c6846ff-ldmh8   0/1     ContainerCreating   0          97s   <none>      k8s-node2   <none>           <none>
+nginx-deployment-5f8c6846ff-nv7xl   1/1     Running             0          32m   10.32.0.2   k8s-node1   <none>           <none>
+```
+
+ContainerCreating代表还在下在镜像
+
+```shell
+$ kubectl describe pod nginx-deployment-5f8c6846ff-csjzw
+Name:           nginx-deployment-5f8c6846ff-csjzw
+Namespace:      default
+Priority:       0
+Node:           k8s-node2/192.168.50.102
+Start Time:     Mon, 11 May 2020 09:43:46 +0800
+Labels:         app=nginx
+                pod-template-hash=5f8c6846ff
+Annotations:    <none>
+Status:         Pending
+IP:
+IPs:            <none>
+Controlled By:  ReplicaSet/nginx-deployment-5f8c6846ff
+Containers:
+  nginx:
+    Container ID:
+    Image:          nginx:1.8
+    Image ID:
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       ContainerCreating
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-dh4hg (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             False
+  ContainersReady   False
+  PodScheduled      True
+Volumes:
+  default-token-dh4hg:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-dh4hg
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age    From                Message
+  ----    ------     ----   ----                -------
+  Normal  Scheduled  6h41m  default-scheduler   Successfully assigned default/nginx-deployment-5f8c6846ff-csjzw to k8s-node2
+  Normal  Pulling    6h29m  kubelet, k8s-node2  Pulling image "nginx:1.8"
+  #横向扩展的镜像还在pull中
+```
+
+
+
+
+
+## 修改Deployment几种方式
+
+### apply
+
+既能create，也能修改更新Deployment
+
+通过   配置文件方式更新Deployment
+
+```shell
+$ kubectl apply -f nginx_deployment_scale.yml
+```
+
+
+
+### edit
+
+查看deployment对应yaml信息
+
+```shell
+$ kubectl get deployment nginx-deployment -o yaml
+```
+
+
+
+在线vi/vim编辑器修改yaml的方式修改配置
+
+```shell
+$ kubectl edit deployment nginx-deployment
+```
+
+修改横向扩展4改为3 ，controller会自动根据配置文件对Deployment的预期进行变更 通过 `kubectl get pod -l app=nginx -o wide` 查看
+
+
+
+### scale
+
+通过命令行对scale进行横向扩展
+
++ 如果名为 nginx-deployment 的部署的当前大小为3个，那么将 nginx-deployment 调整为4个
+
+```shell
+$ kubectl scale --current-replicas=3 --replicas=4 deployment/nginx-deployment
+```
+
+
+
+### set
+
+通过kubectl set命令 修改镜像版本
+
+对deployment类型下的 deployment名称  修改 pod名称和pod的镜像版本
+
+```shell
+$ kubectl set image deployment/nginx-deployment nginx=nginx:1.9.1
+deployment.apps/nginx-deployment image updated
+```
+
+更新后通过 `kubectl get deployment nginx-deployment -o wide` 查看
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
