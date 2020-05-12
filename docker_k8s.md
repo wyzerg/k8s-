@@ -181,8 +181,8 @@ mv minikube /usr/local/bin
 
 
 
-```
-wangjunxiang@My_MacBook_pro_2018  /tmp  minikube start --vm-driver=virtualbox --registry-mirror=https://registry.docker-cn.com
+```shell
+$ minikube start --vm-driver=virtualbox --registry-mirror=https://registry.docker-cn.com
 
 😄  Darwin 10.15.4 上的 minikube v1.9.0
 ✨  根据现有的配置文件使用 virtualbox 驱动程序
@@ -197,7 +197,7 @@ wangjunxiang@My_MacBook_pro_2018  /tmp  minikube start --vm-driver=virtual
 #### 查看minikube集群状态
 
 ```shell
-wangjunxiang@My_MacBook_pro_2018  /tmp  minikube status
+$ minikube status
 m01
 host: Running
 kubelet: Running
@@ -208,13 +208,13 @@ kubeconfig: Configured
 #### 停止minikube集群
 
 ```shell
-minikube stop
+$ minikube stop
 ```
 
 #### 删除minikube集群
 
 ```shell
-minikube delete
+$ minikube delete
 ```
 
 
@@ -2184,11 +2184,15 @@ nginx-deployment-test   4/4     4            4           7h44m   nginx        ng
 
 # 7 监控
 
-## 1) 跑容器
+## 
 
 对容器的单个/多个进行监控
 
-### 环境
+## weavescope 监控容器(单机/多机)
+
+### 跑容器
+
+#### 环境
 
 vagrantfile
 
@@ -2254,13 +2258,13 @@ $ systemctl restart docker
 
 
 
-### 运行容器
+#### 运行容器
 
 ```shell
 $ docker run -d nginx
 ```
 
-### 查看
+#### 查看
 
 ```shell
 $ docker ps
@@ -2269,7 +2273,7 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 
 ```
 
-## 2) weavescope 监控
+## 
 
 ### 安装部署
 
@@ -2303,46 +2307,13 @@ $ scope launch
 $ scope stop
 ```
 
+另外：
 
++ k8s集群资源监控方案 Heapster + Grafana + InfluxDB
 
++ k8s日志采集ELK 方案： Fluentd (log收集到es中) + ElasticSearch (log 搜索) + Kibana (log可视化) + LogTrail (插件：UI上实时查看，类似tailf )
 
-
-### 监控两台服务器
-
-+ 普通部署docker的server
-+ minikube单节点k8s server
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
++ k8s监控方案:prometheus
 
 
 
