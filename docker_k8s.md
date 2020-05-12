@@ -320,7 +320,7 @@ wangjunxiang@My_MacBook_pro_2018  /tmp  minikube dashboard
 
 搭建3台机器的k8s集群
 
-### 安装
+### 安装docker&k8s
 
 #### 1) 环境准备
 
@@ -1197,7 +1197,7 @@ k8s-node2    Ready    worker   3h32m   v1.18.2   192.168.50.102   <none>        
 
 # 4 Namespace命名空间
 
-## Namespace
+## 1) Namespace
 
 用途：
 
@@ -1259,7 +1259,7 @@ weave-net-qb6ns                      2/2     Running   0          4h40m
 
 
 
-## 实例：在指定Namespace中创建pod
+## 2) 实例：在指定Namespace中创建pod
 
 ### 1) 创建namespace：demo
 
@@ -1377,7 +1377,7 @@ $ kubectl delete -f nginx.yml
 
 
 
-## 创建context
+## 3) 创建context
 
 ### 用途：
 
@@ -1493,7 +1493,7 @@ controller：在Deployment中，将当前状态变为期望状态的控制器
 
 
 
-## controller概念
+## 1) controller概念
 
 代码角度
 
@@ -1515,7 +1515,7 @@ makechanges：controller主要是将当前状态变为期望状态
 
 
 
-## Deployment 和Pod类型
+## 2)Deployment 和Pod类型
 
 Deployment 描述期望预期的状态，controller去监听实际状态，让当前状态不是期望的状态时，去改变状态达到期望状态
 
@@ -1531,7 +1531,7 @@ pod是k8s里调度的最小单位，而Deployment是更高一层的定义
 
 
 
-## Deployment 实例
+## 3) Deployment 实例
 
 ### 准备3个yaml文件
 
@@ -1924,7 +1924,7 @@ Events:
 
 
 
-## 总结：修改Deployment几种方式
+## 4) 总结：修改Deployment几种方式
 
 ### apply
 
@@ -1989,7 +1989,7 @@ deployment.apps/nginx-deployment image updated
 
 # 6 Deployment 更新修改过程详解
 
-## Replicaset (controller)
+## 1) Replicaset (controller)
 
 通过kubectl 负责对 image更新，对scale横向扩展更新，都是通过Replicaset 的 controller实现
 
@@ -1999,7 +1999,7 @@ deployment.apps/nginx-deployment image updated
 
 
 
-## 实例
+## 2) 实例
 
 ### nginx_deploymemt.yml
 
@@ -2182,17 +2182,135 @@ nginx-deployment-test   4/4     4            4           7h44m   nginx        ng
 
 
 
+# 7 监控
+
+## 1) 跑容器
+
+对容器的单个/多个进行监控
+
+### 环境
+
+vagrantfile
+
+```ruby
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.require_version ">= 1.6.0"
+
+boxes = [
+    {
+        :name => "docker-host-10",
+        :eth1 => "192.168.50.200",
+        :mem => "2048",
+        :cpu => "2"
+    }
+]
+
+Vagrant.configure(2) do |config|
+
+  config.vm.box = "centos/7"
+  boxes.each do |opts|
+    config.vm.define opts[:name] do |config|
+      config.vm.hostname = opts[:name]
+      config.vm.provider "vmware_fusion" do |v|
+        v.vmx["memsize"] = opts[:mem]
+        v.vmx["numvcpus"] = opts[:cpu]
+      end
+      config.vm.provider "virtualbox" do |v|
+        v.customize ["modifyvm", :id, "--memory", opts[:mem]]
+        v.customize ["modifyvm", :id, "--cpus", opts[:cpu]]
+      end
+      config.vm.network :public_network, ip: opts[:eth1]
+    end
+  end
+  #config.vm.synced_folder "./labs", "/home/vagrant/labs"
+  #config.vm.provision "shell", privileged: true, path: "./setup.sh"
+end
+```
+
+`vagrant up` 创建新的虚拟机环境
+
+安装docker
+
+```shell
+$ systemctl stop firewalld.service && systemctl disable firewalld.service && sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config && setenforce 0 && yum -y install wget curl && curl -o /etc/yum.repos.d/Centos-7.repo http://mirrors.aliyun.com/repo/Centos-7.repo && curl -o /etc/yum.repos.d/docker-ce.repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo && yum install -y yum-utils device-mapper-persistent-data lvm2 vim telnet bind-utils && yum-config-manager  --add-repo  https://download.docker.com/linux/centos/docker-ce.repo && yum install -y docker-ce docker-ce-cli containerd.io && systemctl enable docker && systemctl daemon-reload && systemctl restart docker  && mkdir -p /etc/docker
+
+$ [ ! $(getent group docker) ] && sudo groupadd docker && sudo gpasswd -a $USER docker || echo "docker user group already exists" 
+
+$ cat <<EOF >  /etc/docker/daemon.json
+{
+  "registry-mirrors" : [
+    "https://8xpk5wnt.mirror.aliyuncs.com",
+    "https://dockerhub.azk8s.cn",
+    "https://registry.docker-cn.com",
+    "https://ot2k4d59.mirror.aliyuncs.com/"
+  ]
+}
+EOF
+
+$ systemctl restart docker
+```
+
+
+
+### 运行容器
+
+```shell
+$ docker run -d nginx
+```
+
+### 查看
+
+```shell
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+7ada260ec28b        nginx               "nginx -g 'daemon of…"   5 seconds ago       Up 5 seconds        80/tcp              lucid_hopper
+
+```
+
+## 2) weavescope 监控
+
+### 安装部署
+
+#### 下载安装文件
+
+```shell
+$ curl -L git.io/scope -o /usr/local/bin/scope
+```
+
+#### 给可执行权限
+
+```shell
+$ chmod a+x /usr/local/bin/scope
+```
+
+#### 部署
+
+会自动docker hub下载镜像
+
+```shell
+$ scope launch
+```
+
+#### 访问
+
+<img src="https://images.gitee.com/uploads/images/2020/0512/124449_b5db9ecc_7530643.png" style="zoom: 33%;" />
+
+#### 停止服务
+
+```shell
+$ scope stop
+```
 
 
 
 
 
+### 监控两台服务器
 
-
-
-
-
-
++ 普通部署docker的server
++ minikube单节点k8s server
 
 
 
